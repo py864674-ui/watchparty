@@ -110,8 +110,34 @@ window.onload = function() {
     database.ref("rooms/" + currentRoom).set({ created: true });
     alert("Room ready: " + currentRoom);
   };
-  moviePlayer.src = "https://files.catbox.moe/7vlivh.mp4";
+  // Video sync with Firebase
+const videoInput = document.getElementById("movieInput");
+
+videoInput.addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const url = URL.createObjectURL(file); // temporary local link
+  moviePlayer.src = url;
   moviePlayer.load();
+
+  if (!currentRoom) {
+    alert("Join a room first!");
+    return;
+  }
+
+  // Save URL to Firebase
+  database.ref("rooms/" + currentRoom + "/video").set({ url: url });
+});
+
+// Listen for video changes
+database.ref("rooms/" + currentRoom + "/video").on("value", (snapshot) => {
+  const data = snapshot.val();
+  if (data && data.url) {
+    moviePlayer.src = data.url;
+    moviePlayer.load();
+  }
+});
 };
 </script>
 </body>
