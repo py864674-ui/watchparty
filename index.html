@@ -78,7 +78,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-
 <script>
 window.onload = function() {
   let currentRoom = "";
@@ -101,20 +100,20 @@ window.onload = function() {
 
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
-  const storage = firebase.storage();
 
   // Join Room
   joinBtn.onclick = function() {
     const roomId = roomInput.value.trim();
     if (!roomId) {
-      alert("Please enter a Room ID!");
+      alert("Enter a Room ID!");
       return;
     }
+
     currentRoom = roomId;
     database.ref("rooms/" + currentRoom).set({ created: true });
     alert("Room ready: " + currentRoom);
 
-    // Listen for video changes from Firebase
+    // Listen for video URL changes
     database.ref("rooms/" + currentRoom + "/video").on("value", (snapshot) => {
       const data = snapshot.val();
       if (data && data.url) {
@@ -124,31 +123,27 @@ window.onload = function() {
     });
   };
 
-  // Upload video from PC and sync
-  movieInput.addEventListener("change", function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+  // Select video by URL
+  movieInput.addEventListener("change", function() {
+    const url = prompt("Paste your public video URL (e.g., Catbox link):");
+    if (!url) return;
 
     if (!currentRoom) {
       alert("Join a room first!");
       return;
     }
 
-    // **Host sees video immediately**
-    const localUrl = URL.createObjectURL(file);
-    moviePlayer.src = localUrl;
+    // Set video for host
+    moviePlayer.src = url;
     moviePlayer.load();
 
-    // Upload to Firebase Storage
-    const storageRef = storage.ref("videos/" + file.name);
-    storageRef.put(file).then(() => {
-      storageRef.getDownloadURL().then((url) => {
-        // Save URL in Database so friends can load it
-        database.ref("rooms/" + currentRoom + "/video").set({ url: url });
-      });
-    });
+    // Save URL in Firebase DB for friends
+    database.ref("rooms/" + currentRoom + "/video").set({ url: url });
   });
 };
 </script>
+
+ 
+
 </body>
 </html>
