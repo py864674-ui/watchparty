@@ -77,15 +77,16 @@
 <!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script>
 window.onload = function() {
   let currentRoom = "";
+  let isHost = false;
 
   const moviePlayer = document.getElementById("moviePlayer");
   const joinBtn = document.getElementById("joinBtn");
   const roomInput = document.getElementById("roomInput");
-  const movieInput = document.getElementById("movieInput");
+  const videoUrlInput = document.getElementById("videoUrlInput");
+  const loadVideoBtn = document.getElementById("loadVideoBtn");
 
   // Firebase config
   const firebaseConfig = {
@@ -101,44 +102,71 @@ window.onload = function() {
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
 
-  // Join Room
+  // Join room
   joinBtn.onclick = function() {
     const roomId = roomInput.value.trim();
-    if (!roomId) {
-      alert("Enter a Room ID!");
-      return;
-    }
-
+    if (!roomId) { alert("Enter a Room ID!"); return; }
     currentRoom = roomId;
-    database.ref("rooms/" + currentRoom).set({ created: true });
+    isHost = true;
     alert("Room ready: " + currentRoom);
 
-    // Listen for video URL changes
+    // Listen for video URL changes (for non-hosts)
     database.ref("rooms/" + currentRoom + "/video").on("value", (snapshot) => {
       const data = snapshot.val();
-      if (data && data.url) {
+      if (data && !isHost) {
         moviePlayer.src = data.url;
-        moviePlayer.load();
+        moviePlayer.currentTime = data.time || 0;
+        if (data.playing) moviePlayer.play();
+        else moviePlayer.pause();
+      }
+    });
+
+    // Listen for playback sync
+    database.ref("rooms/" + currentRoom + "/sync").on("value", (snapshot) => {
+      const data = snapshot.val();
+      if (data && !isHost) {
+        moviePlayer.currentTime = data.time;
+        if (data.playing) moviePlayer.play();
+        else moviePlayer.pause();
       }
     });
   };
 
-  // Select video by URL
-  movieInput.addEventListener("change", function() {
-    const url = prompt("Paste your public video URL (e.g., Catbox link):");
-    if (!url) return;
+  // Host loads video URL
+  loadVideoBtn.onclick = function() {
+    if (!currentRoom) { alert("Join a room first!"); return; }
+    const url = videoUrlInput.value.trim();
+    if (!url) { alert("Paste a valid video URL!"); return; }
 
-    if (!currentRoom) {
-      alert("Join a room first!");
-      return;
-    }
-
-    // Set video for host
     moviePlayer.src = url;
-    moviePlayer.load();
+    moviePlayer.currentTime = 0;
+    moviePlayer.play();
 
-    // Save URL in Firebase DB for friends
-    database.ref("rooms/" + currentRoom + "/video").set({ url: url });
+    // Save video URL to Firebase
+    database.ref("rooms/" + currentRoom + "/video").set({
+      url: url,
+      time: 0,
+      playing: true
+    });
+  };
+
+  // Sync host playback with friends
+  moviePlayer.addEventListener("timeupdate", () => {
+    if (!isHost) return;
+    database.ref("rooms/" + currentRoom + "/sync").set({
+      time: moviePlayer.currentTime,
+      playing: !moviePlayer.paused
+    });
+  });
+
+  moviePlayer.addEventListener("play", () => {
+    if (!isHost) return;
+    database.ref("rooms/" + currentRoom + "/sync").update({ playing: true });
+  });
+
+  moviePlayer.addEventListener("pause", () => {
+    if (!isHost) return;
+    database.ref("rooms/" + currentRoom + "/sync").update({ playing: false });
   });
 };
 </script>
