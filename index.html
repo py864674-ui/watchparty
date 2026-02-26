@@ -74,7 +74,44 @@
     <video id="localVideo" autoplay muted playsinline></video>
   </div>
 
-<script>
+<<script>
+  // --- JOIN BUTTON CODE ---
+  document.getElementById("joinBtn").onclick = function() {
+    const roomInput = document.getElementById("roomInput").value.trim();
+    if (!roomInput) {
+      alert("Enter a Room ID!");
+      return;
+    }
+    currentRoom = roomInput;
+    database.ref("rooms/" + currentRoom).set({ created: true });
+    alert("Room ready: " + currentRoom);
+  };
+
+ 
+  document.getElementById("movieInput").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    moviePlayer.src = url;
+    moviePlayer.load();
+
+    if (!currentRoom) {
+      alert("Join a room first!");
+      return;
+    }
+
+    database.ref("rooms/" + currentRoom + "/video").set({ url: url });
+  });
+
+  database.ref("rooms/" + currentRoom + "/video").on("value", (snapshot) => {
+    const data = snapshot.val();
+    if (data && data.url) {
+      moviePlayer.src = data.url;
+      moviePlayer.load();
+    }
+  });
+</script>>
   let currentRoom = "";
   const moviePlayer = document.getElementById("moviePlayer");
   const localVideo = document.getElementById("localVideo");
