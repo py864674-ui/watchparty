@@ -74,55 +74,19 @@
     <video id="localVideo" autoplay muted playsinline></video>
   </div>
 
-<<script>
-  // --- JOIN BUTTON CODE ---
-  document.getElementById("joinBtn").onclick = function() {
-    const roomInput = document.getElementById("roomInput").value.trim();
-    if (!roomInput) {
-      alert("Enter a Room ID!");
-      return;
-    }
-    currentRoom = roomInput;
-    database.ref("rooms/" + currentRoom).set({ created: true });
-    alert("Room ready: " + currentRoom);
-  };
-
- 
-  document.getElementById("movieInput").addEventListener("change", function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-
-    moviePlayer.src = https://files.catbox.moe/7vlivh.mp4;
-    moviePlayer.load();
-
-    if (!currentRoom) {
-      alert("Join a room first!");
-      return;
-    }
-
-    database.ref("rooms/" + currentRoom + "/video").set({ url: url });
-  });
-
-  database.ref("rooms/" + currentRoom + "/video").on("value", (snapshot) => {
-    const data = snapshot.val();
-    if (data && data.url) {
-      moviePlayer.src = data.url;
-      moviePlayer.load();
-    }
-  });
-</script>>
-  let currentRoom = "";
-  const moviePlayer = document.getElementById("moviePlayer");
-  const localVideo = document.getElementById("localVideo");
-  const remoteVideo = document.getElementById("remoteVideo");
-</script>
 <!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+window.onload = function() {
+  // Variables
+  let currentRoom = "";
+  const moviePlayer = document.getElementById("moviePlayer");
+  const localVideo = document.getElementById("localVideo");
+  const remoteVideo = document.getElementById("remoteVideo");
 
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBWgS5isj1hERu1IXh6xv1cn83xftdeDgo",
     authDomain: "watch-party-pro.firebaseapp.com",
@@ -132,26 +96,22 @@
     messagingSenderId: "424851022131",
     appId: "1:424851022131:web:d3c090eafa662e0f2b1e46"
   };
-
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
 
+  // Join room button
   document.getElementById("joinBtn").onclick = function() {
-  const roomInput = document.getElementById("roomInput").value.trim();
-
-  if (!roomInput) {
-    alert("Please enter a Room ID!");
-    return;
-  }
-
-  currentRoom = roomInput;
-
-  // Create room in Firebase
-  database.ref("rooms/" + currentRoom).set({
-    created: true
-  });
-
-  alert("Room ready: " + currentRoom);
+    const roomInput = document.getElementById("roomInput").value.trim();
+    if (!roomInput) {
+      alert("Please enter a Room ID!");
+      return;
+    }
+    currentRoom = roomInput;
+    database.ref("rooms/" + currentRoom).set({ created: true });
+    alert("Room ready: " + currentRoom);
+  };
+  moviePlayer.src = "https://files.catbox.moe/7vlivh.mp4";
+  moviePlayer.load();
 };
 </script>
 </body>
