@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WatchParty Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    #topBar {
+      padding: 10px;
+      background: #1a1a1a;
+    }
+
+    input, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    #videoContainer {
+      position: relative;
+      width: 90%;
+      margin: auto;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    #remoteVideo {
+      position: absolute;
+      width: 200px;
+      bottom: 10px;
+      right: 10px;
+      border: 2px solid white;
+      border-radius: 10px;
+    }
+
+    #localVideo {
+      position: absolute;
+      width: 150px;
+      bottom: 10px;
+      left: 10px;
+      border: 2px solid white;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="topBar">
+    <input type="text" id="roomInput" placeholder="Enter Room ID">
+    <button id="joinBtn">Join Room</button>
+    <input type="file" id="movieInput" accept="video/*">
+  </div>
+
+  <div id="videoContainer">
+    <video id="moviePlayer" controls></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay muted playsinline></video>
+  </div>
+
+<script>
+  let currentRoom = "";
+  const moviePlayer = document.getElementById("moviePlayer");
+  const localVideo = document.getElementById("localVideo");
+  const remoteVideo = document.getElementById("remoteVideo");
+</script>
+
+</body>
+</html>
