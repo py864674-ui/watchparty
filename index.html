@@ -121,7 +121,25 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script>
+<let currentRoom = "";
+const moviePlayer = document.getElementById("moviePlayer");
+const localVideo = document.getElementById("localVideo");
+const remoteVideo = document.getElementById("remoteVideo");
+
+// Join button
+document.getElementById("joinBtn").onclick = function() {
+  const roomInput = document.getElementById("roomInput").value.trim();
+  if (!roomInput) {
+    alert("Enter a Room ID!");
+    return;
+  }
+  currentRoom = roomInput;
+  database.ref("rooms/" + currentRoom).set({ created: true });
+  alert("Room ready: " + currentRoom);
+};
+
+moviePlayer.src = "https://files.catbox.moe/7vlivh.mp4"; 
+moviePlayer.load();>
   const firebaseConfig = {
     apiKey: "AIzaSyBWgS5isj1hERu1IXh6xv1cn83xftdeDgo",
     authDomain: "watch-party-pro.firebaseapp.com",
