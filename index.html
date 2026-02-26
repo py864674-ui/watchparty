@@ -99,9 +99,21 @@
   const database = firebase.database();
 
   document.getElementById("joinBtn").onclick = function() {
-    currentRoom = document.getElementById("roomInput").value;
-    alert("Joined: " + currentRoom);
-  };
+
+  currentRoom = document.getElementById("roomInput").value;
+
+  if (!currentRoom) {
+    alert("Enter a room ID");
+    return;
+  }
+
+  // Create a room in Firebase
+  database.ref("rooms/" + currentRoom).set({
+    created: true
+  });
+
+  alert("Room ready: " + currentRoom);
+};
 </script>
 </body>
 </html>
