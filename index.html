@@ -99,7 +99,6 @@ window.onload = function() {
     appId: "1:424851022131:web:d3c090eafa662e0f2b1e46"
   };
 
-  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
   const storage = firebase.storage();
@@ -111,12 +110,11 @@ window.onload = function() {
       alert("Please enter a Room ID!");
       return;
     }
-
     currentRoom = roomId;
     database.ref("rooms/" + currentRoom).set({ created: true });
     alert("Room ready: " + currentRoom);
 
-    // Listen for video changes
+    // Listen for video changes from Firebase
     database.ref("rooms/" + currentRoom + "/video").on("value", (snapshot) => {
       const data = snapshot.val();
       if (data && data.url) {
@@ -136,30 +134,19 @@ window.onload = function() {
       return;
     }
 
-    // Create a storage reference
+    // **Host sees video immediately**
+    const localUrl = URL.createObjectURL(file);
+    moviePlayer.src = localUrl;
+    moviePlayer.load();
+
+    // Upload to Firebase Storage
     const storageRef = storage.ref("videos/" + file.name);
-
-    // Upload file
-    const uploadTask = storageRef.put(file);
-    uploadTask.on('state_changed', 
-      (snapshot) => {
-        // Optional: you can show upload progress here
-      }, 
-      (error) => {
-        alert("Upload failed: " + error);
-      }, 
-      () => {
-        // Upload complete, get public URL
-        storageRef.getDownloadURL().then((url) => {
-          // Set video for host
-          moviePlayer.src = url;
-          moviePlayer.load();
-
-          // Save URL in Firebase DB so everyone else gets it
-          database.ref("rooms/" + currentRoom + "/video").set({ url: url });
-        });
-      }
-    );
+    storageRef.put(file).then(() => {
+      storageRef.getDownloadURL().then((url) => {
+        // Save URL in Database so friends can load it
+        database.ref("rooms/" + currentRoom + "/video").set({ url: url });
+      });
+    });
   });
 };
 </script>
