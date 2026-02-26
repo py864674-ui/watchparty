@@ -80,11 +80,14 @@
 
 <script>
 window.onload = function() {
-  // Variables
   let currentRoom = "";
+
   const moviePlayer = document.getElementById("moviePlayer");
   const localVideo = document.getElementById("localVideo");
   const remoteVideo = document.getElementById("remoteVideo");
+  const joinBtn = document.getElementById("joinBtn");
+  const roomInput = document.getElementById("roomInput");
+  const movieInput = document.getElementById("movieInput");
 
   // Firebase config
   const firebaseConfig = {
@@ -96,48 +99,50 @@ window.onload = function() {
     messagingSenderId: "424851022131",
     appId: "1:424851022131:web:d3c090eafa662e0f2b1e46"
   };
+
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
 
-  // Join room button
-  document.getElementById("joinBtn").onclick = function() {
-    const roomInput = document.getElementById("roomInput").value.trim();
-    if (!roomInput) {
+  // Join Room
+  joinBtn.onclick = function() {
+    const roomId = roomInput.value.trim();
+    if (!roomId) {
       alert("Please enter a Room ID!");
       return;
     }
-    currentRoom = roomInput;
+
+    currentRoom = roomId;
     database.ref("rooms/" + currentRoom).set({ created: true });
     alert("Room ready: " + currentRoom);
+
+    // Listen for video changes AFTER joining room
+    database.ref("rooms/" + currentRoom + "/video").on("value", (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.url) {
+        moviePlayer.src = data.url;
+        moviePlayer.load();
+      }
+    });
   };
-  // Video sync with Firebase
-const videoInput = document.getElementById("movieInput");
 
-videoInput.addEventListener("change", function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+  // Upload video and sync to Firebase
+  movieInput.addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const url = URL.createObjectURL(file); // temporary local link
-  moviePlayer.src = url;
-  moviePlayer.load();
+    if (!currentRoom) {
+      alert("Join a room first!");
+      return;
+    }
 
-  if (!currentRoom) {
-    alert("Join a room first!");
-    return;
-  }
-
-  // Save URL to Firebase
-  database.ref("rooms/" + currentRoom + "/video").set({ url: url });
-});
-
-// Listen for video changes
-database.ref("rooms/" + currentRoom + "/video").on("value", (snapshot) => {
-  const data = snapshot.val();
-  if (data && data.url) {
-    moviePlayer.src = data.url;
+    // Create temporary local URL
+    const url = URL.createObjectURL(file);
+    moviePlayer.src = url;
     moviePlayer.load();
-  }
-});
+
+    // Save URL to Firebase so everyone in room gets it
+    database.ref("rooms/" + currentRoom + "/video").set({ url: url });
+  });
 };
 </script>
 </body>
